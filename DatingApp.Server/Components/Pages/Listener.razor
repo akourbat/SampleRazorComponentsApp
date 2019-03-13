@@ -31,14 +31,14 @@
         var streamProvider = client.GetStreamProvider("SMSProvider");
         // Get the reference to a stream
         var stream = streamProvider.GetStream<string>(guid, "Razor");
-        // Pushing message into the stream
+        // Subscribing to stream messages
         await stream.SubscribeAsync(OnNext);
     }
 
     Task OnNext(string message, StreamSequenceToken token)
     {
         this.messages.Add(message);
-        Invoke(()=> StateHasChanged());
+        Invoke(()=> StateHasChanged());  //Importand to have this!
         return Task.CompletedTask;
     }
 }

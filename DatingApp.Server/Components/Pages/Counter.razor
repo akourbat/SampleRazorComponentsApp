@@ -9,12 +9,12 @@
 
 <div>
     <input type="text" class="form-control" placeholder="Enter your message" bind="@message" />
-    <small id="emailHelp" class="form-text text-muted">Type a message to send via Orleans.</small>
+    <small class="form-text text-muted">Type a message to send via Orleans to child component.</small>
 </div>
 
 <div>
+    <button class="btn btn-primary mr-2" onclick="@SendStreamMessage">Send a message via Orleans Stream</button>
     <button class="btn btn-primary" onclick="@IncrementCount">Ping Orlean Grain</button>
-    <button class="btn btn-primary" onclick="@SendStreamMessage">Send a message via Orleans Stream</button>
 </div>
 
 <div>
