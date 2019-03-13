@@ -26,6 +26,8 @@ namespace DatingApp.Server
                    //    services.AddDbContext<UserDbSet>(o => o.UseSqlite("Data Source=UserTest.db"));
                    //    services.AddMediatR(typeof(Startup).Assembly);
                    //})
+                   .AddSimpleMessageStreamProvider("SMSProvider")
+                   .AddMemoryGrainStorage("PubSubStore")
                    .EnableDirectClient()
                    .Build();
 

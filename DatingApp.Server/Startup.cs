@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using DatingApp.Server.Components;
 using DatingApp.Server.Services;
 using Microsoft.Extensions.Configuration;
+using DatingApp.Server.ViewModels;
 
 namespace DatingApp.Server
 {
@@ -32,6 +33,7 @@ namespace DatingApp.Server
             services.AddRazorComponents();
 
             services.AddSingleton<WeatherForecastService>();
+            services.AddTransient<ListenerVM>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -7,20 +7,35 @@
 
 <p>Current count: @currentCount</p>
 
-<button class="btn btn-primary" onclick="@IncrementCount">Ping Orlean Grain</button>
+<div>
+    <input type="text" class="form-control" placeholder="Enter your message" bind="@message" />
+    <small id="emailHelp" class="form-text text-muted">Type a message to send via Orleans.</small>
+</div>
 
-@if (result != null)
-{
-    <ul>
-        @foreach (var (key, value) in result)
-        {
-            <li> @key  @value</li>
-        }
-    </ul>
-}
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
-    Launch Reactive Stuff
-</button>
+<div>
+    <button class="btn btn-primary" onclick="@IncrementCount">Ping Orlean Grain</button>
+    <button class="btn btn-primary" onclick="@SendStreamMessage">Send a message via Orleans Stream</button>
+</div>
+
+<div>
+    @if (result != null)
+    {
+        <ul>
+            @foreach (var (key, value) in result)
+            {
+                <li> @key  @value</li>
+            }
+        </ul>
+    }
+</div>
+<br />
+<Listener></Listener>
+<br />
+<div>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+        Launch Reactive Stuff
+    </button>
+</div>
 
 <!-- Modal -->
 <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -63,6 +78,7 @@
 
 @functions {
     int currentCount = 0;
+    string message = "";
 
     List<KeyValuePair<string, dynamic>> result;
 
@@ -86,10 +102,17 @@
                     new KeyValuePair<string, dynamic>("liftoff", DateTime.UtcNow),
         });
     }
+    // Testing to check if Orleans streams are working in Razor Components
+    async Task SendStreamMessage()
+    {
+        var guid = new Guid("0f07450c-b8e7-472c-a275-0059bca40989");
+        // Get stream provider
+        var streamProvider = client.GetStreamProvider("SMSProvider");
+        // Get the reference to a stream
+        var stream = streamProvider.GetStream<string>(guid, "Razor");
+        // Pushing message into the stream
+        await stream.OnNextAsync(message);
+        this.message = "";
+    }
 
-    //void OnClear()
-    //{
-    //    vm.Clear.Execute().Subscribe();
-    //    StateHasChanged();
-    //}
 }

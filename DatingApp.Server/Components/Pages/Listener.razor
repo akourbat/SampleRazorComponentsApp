@@ -1,0 +1,44 @@
+﻿@page "/Listener"
+@using Orleans
+@using Orleans.Streams
+
+@inject IClusterClient client
+
+<div>
+    <button type="button" class="btn btn-primary">
+        Messages from Orleans: <span class="badge badge-light">@messages.Count</span>
+        <span class="sr-only">unread messages</span>
+    </button>
+    @if (messages.Count > 0)
+        {
+            <ul>
+                @foreach (var message in messages)
+                {
+                    <li>@message</li>
+                }
+            </ul>
+        }
+</div>
+
+@functions{
+
+    List<string> messages = new List<string>();
+
+    protected override async Task OnInitAsync()
+    {
+        var guid = new Guid("0f07450c-b8e7-472c-a275-0059bca40989");
+        // Get stream provider
+        var streamProvider = client.GetStreamProvider("SMSProvider");
+        // Get the reference to a stream
+        var stream = streamProvider.GetStream<string>(guid, "Razor");
+        // Pushing message into the stream
+        await stream.SubscribeAsync(OnNext);
+    }
+
+    Task OnNext(string message, StreamSequenceToken token)
+    {
+        this.messages.Add(message);
+        Invoke(()=> StateHasChanged());
+        return Task.CompletedTask;
+    }
+}
