@@ -18,26 +18,48 @@
         }
     </ul>
 }
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+    Launch Reactive Stuff
+</button>
 
-<div class="form-group">
-    <label for="exampleInputName">Your Name</label>
-    <input type="text" class="form-control" id="exampleInputName" placeholder="Enter name" bind-value-oninput="@vm.Name" />
-    <small id="emailHelp" class="form-text text-muted">We'll never share your name with anyone else.</small>
-</div>
-<div>
-    <p>Greeting: @vm.Greeting</p>
-</div>
-<button class="btn btn-primary" disabled="@(!vm.CanExecute)" onclick="@(() => vm.Clear.Execute().Subscribe())">Clear</button>
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalCenterTitle">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="exampleInputName">Your Name</label>
+                    <input type="text" class="form-control" id="exampleInputName" placeholder="Enter name" bind-value-oninput="@vm.Name" />
+                    <small id="emailHelp" class="form-text text-muted">We'll never share your name with anyone else.</small>
+                </div>
+                <div>
+                    <p>Greeting: @vm.Greeting</p>
+                </div>
+                <button class="btn btn-primary" disabled="@(!vm.CanExecute)" onclick="@(() => vm.Clear.Execute().Subscribe())">Clear</button>
 
-@if(vm.HasErrors)
-{
-    <ul>
-        @foreach (var error in vm.Results)
-        {
-            <li>@error</li>
-        }
-    </ul>
-}
+                @if (vm.HasErrors)
+                {
+                    <ul>
+                        @foreach (var error in vm.ValErrors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @functions {
     int currentCount = 0;
@@ -62,7 +84,7 @@
                     new KeyValuePair<string, dynamic>("we", 1),
                     new KeyValuePair<string, dynamic>("have", Guid.NewGuid()),
                     new KeyValuePair<string, dynamic>("liftoff", DateTime.UtcNow),
-                });
+        });
     }
 
     //void OnClear()

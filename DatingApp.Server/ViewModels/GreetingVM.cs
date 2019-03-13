@@ -3,6 +3,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reactive;
@@ -19,7 +20,7 @@ namespace DatingApp.Server.ViewModels
         public string Greeting { get; }
 
         [ObservableAsProperty]
-        public IEnumerable<string> Results { get; }
+        public IEnumerable<string> ValErrors { get; }
 
         [ObservableAsProperty]
         public bool HasErrors { get; }
@@ -46,13 +47,13 @@ namespace DatingApp.Server.ViewModels
             this.Validator = new NameValidator();
 
             this.WhenAnyValue(x => x.Name)
-                .Throttle(TimeSpan.FromMilliseconds(800))
-                .DistinctUntilChanged()
-                .Where(name => !string.IsNullOrWhiteSpace(name))
-                .Select(name => Validator.Validate(this).Errors.Select(e => e.ErrorMessage))
-                .ToPropertyEx(this, x => x.Results);
+            .Throttle(TimeSpan.FromMilliseconds(800))
+            .DistinctUntilChanged()
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => Validator.Validate(this).Errors.Select(e => e.ErrorMessage))
+            .ToPropertyEx(this, x => x.ValErrors);
 
-            this.WhenAnyValue(x => x.Results, l => l != null && l.Any())
+            this.WhenAnyValue(x => x.ValErrors, l => l != null && l.Any())
                 .ToPropertyEx(this, x => x.HasErrors);
         }
     }
