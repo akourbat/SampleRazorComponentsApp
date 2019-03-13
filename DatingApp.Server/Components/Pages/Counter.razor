@@ -38,6 +38,9 @@
                     <input type="text" class="form-control" id="exampleInputName" placeholder="Enter name" bind-value-oninput="@vm.Name" />
                     <small id="emailHelp" class="form-text text-muted">We'll never share your name with anyone else.</small>
                 </div>
+                <button type="button" class="@(vm.Name.Length >= 4 ? "btn btn-success":"btn btn-primary")">
+                    Characters <span class="badge badge-light">@vm.Name.Length</span>
+                </button>
                 <div hidden="@(!vm.CanExecute)">
                     <p>Greeting: @vm.Greeting</p>
                 </div>
