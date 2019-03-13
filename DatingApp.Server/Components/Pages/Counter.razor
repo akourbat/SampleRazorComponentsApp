@@ -1,0 +1,73 @@
+@page "/counter"
+@using Orleans
+@using DatingApp.Server.ViewModels
+@inject IClusterClient client
+
+<h1>Counter</h1>
+
+<p>Current count: @currentCount</p>
+
+<button class="btn btn-primary" onclick="@IncrementCount">Click me</button>
+
+@if (result != null)
+{
+    <ul>
+        @foreach (var (key, value) in result)
+        {
+            <li> @key  @value</li>
+        }
+    </ul>
+}
+
+<div class="form-group">
+    <label for="exampleInputName">Your Name</label>
+    <input type="text" class="form-control" id="exampleInputName" placeholder="Enter name" bind-value-oninput="@vm.Name" />
+    <small id="emailHelp" class="form-text text-muted">We'll never share your name with anyone else.</small>
+</div>
+<div>
+    <p>Greeting: @vm.Greeting</p>
+</div>
+<button class="btn btn-primary" disabled="@(!vm.CanExecute)" onclick="@(() => vm.Clear.Execute().Subscribe())">Clear</button>
+
+@if(vm.HasErrors)
+{
+    <ul>
+        @foreach (var error in vm.Results)
+        {
+            <li>@error</li>
+        }
+    </ul>
+}
+
+@functions {
+    int currentCount = 0;
+
+    List<KeyValuePair<string, dynamic>> result;
+
+    ReactiveFodyViewModel vm;
+
+    protected override Task OnInitAsync()
+    {
+        vm = new ReactiveFodyViewModel();
+        return base.OnInitAsync();
+    }
+
+    async Task IncrementCount()
+    {
+        currentCount++;
+        var grain = client.GetGrain<IMyGrain>(0);
+        result = await grain.Echo(
+            new List<KeyValuePair<string, dynamic>>
+            {
+                    new KeyValuePair<string, dynamic>("we", 1),
+                    new KeyValuePair<string, dynamic>("have", Guid.NewGuid()),
+                    new KeyValuePair<string, dynamic>("liftoff", DateTime.UtcNow),
+                });
+    }
+
+    //void OnClear()
+    //{
+    //    vm.Clear.Execute().Subscribe();
+    //    StateHasChanged();
+    //}
+}
