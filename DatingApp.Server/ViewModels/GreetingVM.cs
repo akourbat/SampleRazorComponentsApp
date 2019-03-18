@@ -47,7 +47,7 @@ namespace DatingApp.Server.ViewModels
             this.Validator = new NameValidator();
 
             this.WhenAnyValue(x => x.Name)
-            .Throttle(TimeSpan.FromMilliseconds(800))
+            //.Throttle(TimeSpan.FromMilliseconds(800))
             .DistinctUntilChanged()
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Select(name => Validator.Validate(this).Errors.Select(e => e.ErrorMessage))
