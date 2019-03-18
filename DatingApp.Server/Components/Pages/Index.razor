@@ -1,6 +1,156 @@
 ﻿@page "/"
 
+@inject IClusterClient  client
+
 <h1>Hello, world!</h1>
 
-Go to Counter Page to Test Reactive sample (Includes test ping to Orleans grain to check it is working)
+<label>
+    Go to Counter Page to Test Reactive sample (Includes test ping to Orleans grain to check it is working).
+    Below is an example of Dynamic Data working with Orleans Streams
+</label>
+<hr />
+
+<div class="container">
+    <div class="row">
+        <div class="col-4">
+            <form>
+                <div class="form-group row">
+                    <label for="amount" class="col-sm-4 col-form-label">Amount</label>
+                    <div class="col-sm-8">
+                        <input type="number" class="form-control" id="amount" placeholder="Enter Loan Amount" bind="@amount" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="days" class="col-sm-4 col-form-label">Duration</label>
+                    <div class="col-sm-8">
+                        <input type="number" class="form-control" id="days" placeholder="Number of Days" bind="@days" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="message" class="col-sm-4 col-form-label">Comments</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" id="message" placeholder="Your comments go here" bind="@message" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-10">
+                        <button type="button" class="btn btn-primary" onclick="@CreateNewActivity">Create</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-8">
+            @if (list != null && list.Any())
+            {
+                <ul class="list-group">
+                    @foreach (var item in list)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <h5><span class="@(item.Status=="Approved"? "badge badge-success":"badge badge-warning")">Status: @item.Status</span></h5>
+                            Id:  @item.Id <span class="badge badge-primary badge-pill">@item.MessagesCount</span>
+                            <span><button type="button" class="btn btn-info" data-toggle="modal" data-target="#exampleModalCenter" 
+                                          onclick="@(async () => await View(item.Id))">View</button></span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
+
+@*<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+    Launch demo modal
+</button>*@
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Loan Activity</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            @if (details != null)
+            {
+        <div class="modal-body">
+            <div>ID:      @details.Id</div>
+            <div>Amount:  @details.Amount</div>
+            <div>Days:    @details.Days</div>
+            <div>Details: @details.Description</div>
+        </div>
+            }
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="@(async () => await Approve(details.Id))">Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions{
+
+    int amount = 0;
+    int days = 0;
+    string message = "";
+    LoanWorkFlowCommand details;
+
+    private const string channel = "d42fb0a0-9a84-41d8-9e94-6a4ae077f3f3";
+
+    ReadOnlyObservableCollection<Activity> list;
+
+    private SourceCache<Activity, Guid> activities = new SourceCache<Activity, Guid>(a => a.Id);
+
+    protected override async Task OnInitAsync()
+    {
+        activities.Connect()
+            .Bind(out list)
+            .Subscribe();
+
+        var streamProvider = client.GetStreamProvider("SMSProvider");
+        var mainStreamId = new Guid(channel);
+        var activityStream = streamProvider.GetStream<Activity>(mainStreamId, "Treasury");
+
+        await activityStream.SubscribeAsync(OnNext);
+
+        await base.OnInitAsync();
+    }
+
+    async Task CreateNewActivity()
+    {
+        var grainId = Guid.NewGuid();
+        var grain = client.GetGrain<ILoanWorkFlow>(grainId);
+        var id = Guid.NewGuid();
+        var guid = await grain.RegisterLoanWorkFlow(new LoanWorkFlowCommand { Id = id, Amount = amount, Days = days, Description = message });
+        amount = 0;
+        days = 0;
+        message = "";
+    }
+
+    Task OnNext(Activity message, StreamSequenceToken token)
+    {
+        activities.AddOrUpdate(message);
+        Invoke(() => StateHasChanged());  //Importand to have this!
+        return Task.CompletedTask;
+    }
+
+    async Task Approve(Guid grainId)
+    {
+        //var grainId = list[0].Id;
+        var grain = client.GetGrain<ILoanWorkFlow>(grainId);
+        await grain.ApproveAsync();
+        await grain.PostMessage(new ActivityMessage { UserId = 5, Message = "Well Done" });
+        await Invoke(() => StateHasChanged());
+    }
+
+    async Task View(Guid grainId)
+    {
+        var grain = client.GetGrain<ILoanWorkFlow>(grainId);
+        details = await grain.GetDetails();
+        await Invoke(() => StateHasChanged());
+    }
+
+}
 
